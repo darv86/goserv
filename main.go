@@ -1,85 +1,60 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"strconv"
+)
 
 func main() {
-	print := fmt.Printf
-	// println := fmt.Println
+	// if there is no need to use one of two returned values,
+	// use "_" to ignore that value
+	num, _ := strToInt("32b")
+	err := myError{nameType: "myError", nameError: "this my error"}
+	res, errDiv := div(2, 0)
 
-	myCar := Car{
-		nameCar: "mazda",
-		wheels:  4,
-		engine:  struct{ nameEngine string }{nameEngine: "rolls"},
-	}
-
-	print(
-		"there is result - %v, %s, %v, %v",
-		myCar,
-		myCar.getInfo(";"),
-		// getInfoLen accepted myCar as argument, but Informer in function declaration
-		getInfoLen(myCar),
-		myCar.getNameLen(2),
+	fmt.Printf(
+		"there is result - %v, %T\n",
+		num,
+		num,
 	)
+	fmt.Println("my custom error message:", err)
+	fmt.Println("result is:", res, errDiv)
 }
 
-// Interface - collection of a methods signatures
-type Informer interface {
-	getInfo(string) string
-}
-
-type NameCounter interface {
-	// argument can be named ("offset")
-	// returned value also can be named ("length")
-	// arguments and returned values can have own name,
-	// but should not have the same name as original methods
-	getNameLen(offset int) (length int)
-}
-
-// can accept Car instance, coz Car implicitly implements (has getInfo methods) Informer interface
-func getInfoLen(i Informer) int {
-	// Type assertion
-	// inf - Car instance
-	// ok - true if "i" has underlying type of Car
-	// inf, ok := i.(Car)
-	// fmt.Println(inf, ok)
-	// Type switches
-	switch v := i.(type) {
-	// actually v == i
-	case Car:
-		// will print type of argument (Car)
-		fmt.Printf("from switch Car %v\n", v)
-	case Plane:
-		// do almost the same (main.Plane)
-		fmt.Printf("from switch Plane %T\n", i)
-	default:
-		fmt.Printf("from switch default %v\n", i)
+func div(a, b int) (int, error) {
+	if a == 0 || b == 0 {
+		// New error (from standard lib)
+		// creates error once
+		return 0, errors.New("cant divide by zero")
 	}
-	return len(i.getInfo(""))
+	return a / b, nil
 }
 
-type Plane struct{}
-
-func (p Plane) getInfo(separator string) string {
-	return "from plane"
+func strToInt(str string) (int, error) {
+	// strconv.Atoi - converts string to int
+	num, err := strconv.Atoi(str)
+	// Error handling (in go error is just regular value, not special type)
+	// if causes error, err will have string with details,
+	// if not, err == nil
+	if err != nil {
+		fmt.Println("error from if:", err)
+		return 0, err
+	}
+	return num, err
 }
 
-type Car struct {
-	nameCar string
-	wheels  int
-	engine  struct{ nameEngine string }
+// Custom error
+// to use my own error with specific error message,
+// myError type should implements global error interface:
+// struct should have Error method, that returns string
+type myError struct {
+	nameError string
+	nameType  string
 }
 
-func (c Car) getInfo(separator string) string {
-	return fmt.Sprintf(
-		"name: %s%s engine: %s",
-		c.nameCar,
-		separator,
-		c.engine.nameEngine,
-	)
-}
-
-// now Car implements second interface NameCounter
-func (c Car) getNameLen(offset int) (l int) {
-	l = offset + len(c.nameCar)
-	return l
+// this method will call, when myError struct produces new instance
+func (e myError) Error() string {
+	// will return custom error message
+	return e.nameError
 }
