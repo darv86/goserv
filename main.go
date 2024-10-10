@@ -1,126 +1,102 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 func main() {
-	// Array in go has fixed length
-	arr := [4]int{2, 4, 6, 3}
-	fmt.Println("result from array:", arr)
-	// Slice is a view for array
-	// in most cases slice uses to have a deal with array
-	// slices store value by reference from array, it means,
-	// if function has access to slice, function can modify array
-	slice1 := arr[:]
-	fmt.Println("result from slice1:", slice1)
-	slice2 := arr[1:]
-	fmt.Println("result from slice2:", slice2)
-	slice3 := arr[:3]
-	fmt.Println("result from slice3:", slice3)
-	slice4 := arr[1:3]
-	fmt.Println("result from slice4:", slice4)
+	// Map build key string and value int
+	// make(mapType, n-elements) two arguments just for maps (no 3rd argument as for slice)
+	maps := make(map[string]int)
+	maps["hey"] = 42
+	// short way to create map
+	// maps := map[string]string{"hey": "world"}
+	fmt.Println("map: ", maps)
 
-	// slice literal (doesn't use length value inside array literal[], but array does)
-	arrStr := []string{"a", "b", "c"}
-	fmt.Printf("result from arrStr: %T, %T\n", arrStr, arr)
+	names := []string{"John", "Bob"}
+	phones := []int{111, 222}
+	userMap, err := getUserMap(names, phones)
+	fmt.Println("user map:", userMap, err)
 
-	// slice can be created over another slice
-	arrStrSlice := arrStr[:2]
-	fmt.Println("result from arrStrSlice:", arrStrSlice)
-
-	// another way to create a slice
-	// make(type, length, capacity)
-	sliceMake := make([]int, 3, 6)
-	sliceMakeLen := len(sliceMake)
-	sliceMakeCap := cap(sliceMake)
-	fmt.Printf("result from sliceMake: %v; length: %v; capacity: %v\n", sliceMake, sliceMakeLen, sliceMakeCap)
-
-	arrayForSlice := [6]int{1, 2, 3, 4, 5, 6}
-	sliceFromArray := arrayForSlice[:2]
-	fmt.Printf(
-		"array: %v; length: %v; cap: %v\nslice: %v, length: %v; cap: %v\n",
-		arrayForSlice,
-		len(arrayForSlice),
-		cap(arrayForSlice),
-		sliceFromArray,
-		len(sliceFromArray),
-		// The capacity of a slice is the number of elements in the underlying array,
-		// counting from the first element in the slice
-		cap(sliceFromArray),
-	)
-
-	// sum receives arguments as many as needed
-	fmt.Println("total: ", sum(2, 4, 1))
-
-	sliceToRest := []int{2, 5, 1}
-	// Rest operator in go
-	fmt.Println("total with rest: ", sum(sliceToRest...))
-
-	costs := []costPerDay{
-		{0, 4.0},
-		{1, 2.1},
-		{5, 2.5},
-		{1, 3.1},
+	john := user{name: "John", toDelete: true}
+	// short way to create struct instance (should preserve an order)
+	bob := user{"Bob", false}
+	// maps can have struct as key and as value (comparable)
+	// but cant have maps, functions, slices as key (not comparable)
+	users := map[int]user{
+		1: john,
+		2: bob,
 	}
-	fmt.Println("total costs:", getCostByDay(costs))
+	deleted1, err1 := deletion(users, 1)
+	fmt.Println("user1 deletion:", deleted1, err1, users)
+	deleted2, err2 := deletion(users, 2)
+	fmt.Println("user2 deletion:", deleted2, err2, users)
+	deleted3, err3 := deletion(users, 3)
+	fmt.Println("user3 deletion:", deleted3, err3, users)
 
-	fmt.Println("matrix:", createSlice2d(10, 10))
+	persons := []string{"john", "bob", "ann"}
+	fmt.Println("all persons:", addToMap(persons))
 
-	// Range can be used instead of:
-	// for i:=0; i<len(arrFroRange); i++
-	arrForRange := []int{1, 2, 3, 4}
-	for i, elem := range arrForRange {
-		fmt.Println("index and element:", i, elem)
+	films := map[string]string{"terminator": "action", "titanic": "drama"}
+	// if there is no key in map, it will returns depends on type:
+	// string > empty string; int > 0; bool > false ...
+	fmt.Println("user does'nt exist:", films["empty"])
+
+	// maps can have another map as a value (nested map)
+	// rune is a type (literal is ''), represents single unicode symbol
+	nestedMap := map[rune]map[string]int{
+		// redundant syntax
+		// "ann": map[string]int{"age": 23},
+		// "john": map[string]int{"age": 32},
+		// short syntax
+		'a': {"age": 23},
+		'j': {"age": 32},
 	}
+	fmt.Println("nested map:", nestedMap)
 }
 
-// Slice of slices type
-func createSlice2d(rows, cols int) [][]int {
-	matrix := make([][]int, rows)
-	for i := 0; i < rows; i++ {
-		matrix[i] = make([]int, cols)
-		for j := 0; j < cols; j++ {
-			matrix[i][j] = i * j
-		}
+func addToMap(persons []string) map[string]int {
+	// empty map can be created
+	myMap := map[string]int{}
+	for i, person := range persons {
+		// empty map is getting fulfilled
+		myMap[person] = i
 	}
-	return matrix
+	return myMap
 }
 
-// Variadic arguments (like rest operator in js)
-func sum(numbers ...int) int {
-	total := 0
-	// numbers is literally a slice
-	for i := 0; i < len(numbers); i++ {
-		total += numbers[i]
-	}
-	return total
+type user struct {
+	name     string
+	toDelete bool
 }
 
-type costPerDay struct {
-	day  int
-	cost float64
+func deletion(users map[int]user, id int) (deleted bool, err error) {
+	// can be returned two values:
+	// 2nd value (boolean - if exist) is optional
+	user, ok := users[id]
+	if !ok {
+		return false, errors.New("there is no such a user")
+	}
+	// alternative (for above statement) syntax for if statement
+	// if _, ok := users[id]; !ok { return false, errors.New("there is no such a user") }
+	if !user.toDelete {
+		return false, nil
+	}
+	// like slices, maps are also passed by reference into functions
+	// if delete record from map inside the function,
+	// original map will mutate
+	delete(users, id)
+	return true, nil
 }
 
-func getCostByDay(costs []costPerDay) []float64 {
-	costsOnly := []float64{}
-	days := 0
-	for i := 0; i < len(costs); i++ {
-		if costs[i].day > days {
-			days = costs[i].day
-		}
+func getUserMap(names []string, phones []int) (map[string]int, error) {
+	if len(names) != len(phones) {
+		return nil, errors.New("lengths of arguments are not equal")
 	}
-	for i := 0; i <= days; i++ {
-		// Append adds element to the end of a slice (like push in js)
-		// and auto increase length of a new slice
-		// reassign new slice to a current (slice) variable
-		// try to avoid to assign new slice to another (slice) variable
-		costsOnly = append(costsOnly, 0.0)
+	userMap := make(map[string]int)
+	for i, name := range names {
+		userMap[name] = phones[i]
 	}
-	for i := 0; i < len(costsOnly); i++ {
-		for j := 0; j < len(costs); j++ {
-			if i == costs[j].day {
-				costsOnly[i] += costs[j].cost
-			}
-		}
-	}
-	return costsOnly
+	return userMap, nil
 }
