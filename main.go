@@ -2,41 +2,56 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 func main() {
+	x := 2
+	// Pointer (p) stores the address of x
+	var p *int = &x
+	// p := &x // the same above
+	// value of x, changed by the address,
+	// so pointer (p) has updated value of x (3)
+	x = 3
+	// pointer stores the address of x
+	fmt.Printf("pointer stores address: %v\n", p)
+	// syntax * shows the value behind x address
+	fmt.Printf("pointer stores value: %v\n", *p)
+	*p = 4
+	// updates the value for x
+	fmt.Printf("x stores updated (by *p) value: %v\n", x)
 
-	logger := getLogger(doFormat)
-	logger("1st string ", "2nd string")
-
-	fmt.Println("defer call:", def())
+	user := user{name: "bob"}
+	str := "some string"
+	// passed value with pointer type as argument
+	printName(&user, &str)
+	// printName func mutates struct (user)
+	fmt.Println("user's changed name:", user.name)
+	fmt.Println("and changed str:", str)
 }
 
-func def() (res int) {
-	res = 5
-	// Defer keyword postpone func call,
-	// after value (res) in return statement is ready
-	defer func() { res *= 2 }()
-	// its convenient, coz there is no need of calling
-	// func (in this case, anonymous) inside every return statement
-	if res > 4 {
+type user struct {
+	name string
+}
+
+// after * syntax, argument (u) stores
+// the address of user instance
+// so if we want to mutate instance inside a method
+// and keep changes outside this method,
+// we should use pointer type as an argument for the method
+func printName(u *user, str *string) {
+	// if pointer points to nothing, it returns nil
+	// so check if nil before dereferencing
+	if u == nil || str == nil {
 		return
 	}
-	res += 3
-	return res
-}
-
-// High order function
-func getLogger(formatter func(string, string) string) func(string, string) {
-	return func(str1, str2 string) {
-		fmt.Println(formatter(str1, str2))
-	}
-}
-
-// In Go (the same in js) all functions are 1st class functions:
-// they can be passed as a argument to another function
-// or assigned to a variable
-// or returned as a value
-func doFormat(str1, str2 string) string {
-	return str1 + str2
+	fmt.Printf("user name is %v\n", u.name)
+	// code above does the same as code below under the hood
+	fmt.Printf("user name is %v\n", (*u).name)
+	// and now we can mutate struct (user) inside this func
+	u.name = "john"
+	// 2nd * converts from pointer (*str) to string value for ReplaceAll,
+	// replaces string and returns result
+	// 1st * converts, converted value reassigns with new returned value
+	*str = strings.ReplaceAll(*str, "string", "text")
 }
