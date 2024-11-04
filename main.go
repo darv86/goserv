@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
+	"net/http"
 
 	// to use external libs:
 	// 1. go get github.com/go-chi/chi/v5 (package path)
@@ -13,6 +13,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )
+
+func mainRouter(w http.ResponseWriter, r *http.Request) {
+	log.Println("from router main:", r.Host)
+	fmt.Fprint(w, "from router main:", r.Host)
+}
+
+func apiRouter(w http.ResponseWriter, r *http.Request) {
+	log.Println("from router api: ", r.Host)
+	fmt.Fprint(w, "from router api: ", r.Host)
+}
 
 func main() {
 	PORT := "8080"
@@ -25,8 +35,8 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
-	// http.ListenAndServe(":"+PORT, router)
+	http.HandleFunc("/", mainRouter)
+	http.HandleFunc("/api", apiRouter)
+	http.ListenAndServe(":"+PORT, nil)
 	log.Printf("port: %s", PORT)
-	host, _ := os.Getwd()
-	fmt.Println("server", host)
 }
