@@ -46,10 +46,7 @@ func (ac apiConfig) userCreateRouter(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	connection, err := sql.Open(
-		"postgres",
-		"user=darv dbname=goserv password=groovy host=localhost port=5432 sslmode=disable",
-	)
+	connection, err := sql.Open(dbConfig.driver, dbConfig.GetConfigString())
 	if err != nil {
 		log.Println(err.Error())
 	}
