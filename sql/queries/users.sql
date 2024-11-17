@@ -3,11 +3,22 @@
 -- and one record wll be returned
 -- name: CreateUser :one
 INSERT INTO "users" (created_at, updated_at, name)
+-- func CreateUser will only one parameter with string type,
+-- instead of CreateUserParams type
 -- INSERT INTO "users" (name)
 -- CreateUser will accept as a parameters these 4 arguments
 -- COALESCE is the standard sql function,
 -- which returns 1st not null value
 VALUES (coalesce($2, now()), coalesce($3, now()), $1)
 -- VALUES ($1, $2, $3, $4)
-RETURNING id, created_at, updated_at, name;
+-- syntax * returns all parameters
 -- RETURNING *;
+RETURNING id, created_at, updated_at, name;
+
+-- name: GetUsers :many
+SELECT * FROM "users"
+ORDER BY "name";
+
+-- name: GetUserById :one
+SELECT * FROM "users"
+WHERE "id" = $1;
