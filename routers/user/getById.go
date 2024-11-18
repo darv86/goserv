@@ -1,4 +1,4 @@
-package routers
+package user
 
 import (
 	"database/sql"
@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func GetUserByIdRouter(queries *database.Queries) http.HandlerFunc {
+func GetById(queries *database.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("from get users by id router")
 		//
@@ -22,7 +22,7 @@ func GetUserByIdRouter(queries *database.Queries) http.HandlerFunc {
 			return
 		}
 		userId := sql.NullInt64{Int64: id, Valid: true}
-		users, err := queries.GetUserById(r.Context(), userId)
+		users, err := queries.GetById(r.Context(), userId)
 		if err != nil {
 			log.Println(err.Error())
 		}

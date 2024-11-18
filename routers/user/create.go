@@ -1,4 +1,4 @@
-package routers
+package user
 
 import (
 	"encoding/json"
@@ -8,18 +8,18 @@ import (
 	"github.com/darv86/goserv/internal/database"
 )
 
-func CreateUserRouter(queries *database.Queries) http.HandlerFunc {
+func Create(queries *database.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("from user create router")
 		//
-		var params database.CreateUserParams
+		var params database.CreateParams
 		err := json.NewDecoder(r.Body).Decode(&params)
 		if err != nil {
 			log.Println(err.Error())
 			return
 		}
 		//
-		user, err := queries.CreateUser(r.Context(), params)
+		user, err := queries.Create(r.Context(), params)
 		if err != nil {
 			log.Println(err.Error())
 			return

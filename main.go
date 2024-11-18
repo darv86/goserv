@@ -23,6 +23,11 @@ func indexRouter(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("hi"))
 }
 
+type Crud interface {
+	Get(string, http.HandlerFunc)
+	Post(string, http.HandlerFunc)
+}
+
 func main() {
 	connection, err := sql.Open(dbConfig.driver, dbConfig.GetConfigString())
 	if err != nil {
@@ -40,9 +45,7 @@ func main() {
 		MaxAge:           300,
 	}))
 	router.Get("/", indexRouter)
-	router.Get("/users", routers.GetUsersRouter(queries))
-	router.Get("/user/{id}", routers.GetUserByIdRouter(queries))
-	router.Post("/user/create", routers.CreateUserRouter(queries))
+	routers.Setup(router, queries)
 	//
 	PORT := "8080"
 	log.Printf("port: %s", PORT)
