@@ -19,10 +19,16 @@ func Create(queries *database.Queries) http.HandlerFunc {
 			return
 		}
 		//
-		user, err := queries.Create(r.Context(), params)
+		userDb, err := queries.Create(r.Context(), params)
 		if err != nil {
 			log.Println(err.Error())
 			return
+		}
+		user := User{
+			ID:        int(userDb.ID.Int64),
+			CreatedAt: userDb.CreatedAt,
+			UpdatedAt: userDb.UpdatedAt,
+			Name:      userDb.Name,
 		}
 		//
 		w.Header().Add("Content-type", "application/json")

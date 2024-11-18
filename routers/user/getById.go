@@ -22,10 +22,16 @@ func GetById(queries *database.Queries) http.HandlerFunc {
 			return
 		}
 		userId := sql.NullInt64{Int64: id, Valid: true}
-		users, err := queries.GetById(r.Context(), userId)
+		userDb, err := queries.GetById(r.Context(), userId)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		json.NewEncoder(w).Encode(users)
+		user := User{
+			ID:        int(userDb.ID.Int64),
+			CreatedAt: userDb.CreatedAt,
+			UpdatedAt: userDb.UpdatedAt,
+			Name:      userDb.Name,
+		}
+		json.NewEncoder(w).Encode(user)
 	}
 }
