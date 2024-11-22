@@ -23,11 +23,6 @@ func indexRouter(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("hi"))
 }
 
-type Crud interface {
-	Get(string, http.HandlerFunc)
-	Post(string, http.HandlerFunc)
-}
-
 func main() {
 	connection, err := sql.Open(dbConfig.driver, dbConfig.GetConfigString())
 	if err != nil {
