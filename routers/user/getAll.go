@@ -6,24 +6,19 @@ import (
 	"net/http"
 
 	"github.com/darv86/goserv/internal/database"
+	"github.com/darv86/goserv/internal/utils"
 )
 
 func GetAll(queries *database.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("from get users router")
-		usersDb, err := queries.GetAll(r.Context())
+		usersDb, err := queries.UserGetAll(r.Context())
 		if err != nil {
 			log.Println(err.Error())
 		}
-		//
 		var users []User
 		for _, userDb := range usersDb {
-			user := User{
-				ID:        int(userDb.ID.Int64),
-				CreatedAt: userDb.CreatedAt,
-				UpdatedAt: userDb.UpdatedAt,
-				Name:      userDb.Name,
-			}
+			user := utils.GetStructTypeOf[User](userDb)
 			users = append(users, user)
 		}
 		w.Header().Add("Content-type", "application/json")
