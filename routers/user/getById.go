@@ -1,7 +1,6 @@
 package user
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -21,8 +20,8 @@ func GetById(queries *database.Queries) http.HandlerFunc {
 			log.Println(err.Error())
 			return
 		}
-		userId := sql.NullInt64{Int64: id, Valid: true}
-		userDb, err := queries.UserGetById(r.Context(), userId)
+		// userId := sql.NullInt64{Int64: id, Valid: true}
+		userDb, err := queries.UserGetById(r.Context(), id)
 		if err != nil {
 			log.Println(err.Error())
 		}

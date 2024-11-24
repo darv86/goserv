@@ -5,13 +5,20 @@
 package database
 
 import (
-	"database/sql"
 	"time"
 )
 
+type GooseDbVersion struct {
+	ID        int32
+	VersionID int64
+	IsApplied bool
+	Tstamp    time.Time
+}
+
 type User struct {
-	ID        sql.NullInt64
+	ID        int64
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
+	ApiKey    string
 }

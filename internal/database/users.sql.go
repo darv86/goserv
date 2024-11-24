@@ -7,13 +7,12 @@ package database
 
 import (
 	"context"
-	"database/sql"
 )
 
 const userCreate = `-- name: UserCreate :one
 INSERT INTO "users" (created_at, updated_at, name)
 VALUES (coalesce($2, now()), coalesce($3, now()), $1)
-RETURNING id, created_at, updated_at, name
+RETURNING id, created_at, updated_at, name, api_key
 `
 
 type UserCreateParams struct {
@@ -33,7 +32,6 @@ type UserCreateParams struct {
 // which returns 1st not null value
 // VALUES ($1, $2, $3, $4)
 // syntax * returns all parameters
-// RETURNING *;
 func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, userCreate, arg.Name, arg.Column2, arg.Column3)
 	var i User
@@ -42,15 +40,18 @@ func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (User, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Name,
+		&i.ApiKey,
 	)
 	return i, err
 }
 
 const userGetAll = `-- name: UserGetAll :many
-SELECT id, created_at, updated_at, name FROM "users"
+
+SELECT id, created_at, updated_at, name, api_key FROM "users"
 ORDER BY "name"
 `
 
+// RETURNING id, created_at, updated_at, name;
 func (q *Queries) UserGetAll(ctx context.Context) ([]User, error) {
 	rows, err := q.db.QueryContext(ctx, userGetAll)
 	if err != nil {
@@ -65,6 +66,7 @@ func (q *Queries) UserGetAll(ctx context.Context) ([]User, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Name,
+			&i.ApiKey,
 		); err != nil {
 			return nil, err
 		}
@@ -80,11 +82,11 @@ func (q *Queries) UserGetAll(ctx context.Context) ([]User, error) {
 }
 
 const userGetById = `-- name: UserGetById :one
-SELECT id, created_at, updated_at, name FROM "users"
+SELECT id, created_at, updated_at, name, api_key FROM "users"
 WHERE "id" = $1
 `
 
-func (q *Queries) UserGetById(ctx context.Context, id sql.NullInt64) (User, error) {
+func (q *Queries) UserGetById(ctx context.Context, id int64) (User, error) {
 	row := q.db.QueryRowContext(ctx, userGetById, id)
 	var i User
 	err := row.Scan(
@@ -92,6 +94,7 @@ func (q *Queries) UserGetById(ctx context.Context, id sql.NullInt64) (User, erro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Name,
+		&i.ApiKey,
 	)
 	return i, err
 }
