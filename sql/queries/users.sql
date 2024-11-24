@@ -12,8 +12,8 @@ INSERT INTO "users" (created_at, updated_at, name)
 VALUES (coalesce($2, now()), coalesce($3, now()), $1)
 -- VALUES ($1, $2, $3, $4)
 -- syntax * returns all parameters
--- RETURNING *;
-RETURNING id, created_at, updated_at, name;
+RETURNING *;
+-- RETURNING id, created_at, updated_at, name;
 
 -- name: UserGetAll :many
 SELECT * FROM "users"
