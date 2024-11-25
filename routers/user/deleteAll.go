@@ -8,14 +8,14 @@ import (
 	"github.com/darv86/goserv/internal/database"
 )
 
-func GetAll(queries *database.Queries) http.HandlerFunc {
+func DeleteAll(queries *database.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("from get users router")
-		usersDb, err := queries.UserGetAll(r.Context())
+		log.Println("from delete users router")
+		err := queries.UserDeleteAll(r.Context())
 		if err != nil {
 			log.Println(err.Error())
 		}
 		w.Header().Add("Content-type", "application/json")
-		json.NewEncoder(w).Encode(usersDb)
+		json.NewEncoder(w).Encode(struct{ Status string }{Status: "All users deleted"})
 	}
 }

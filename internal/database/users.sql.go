@@ -16,9 +16,9 @@ RETURNING id, created_at, updated_at, name, api_key
 `
 
 type UserCreateParams struct {
-	Name    string
-	Column2 interface{}
-	Column3 interface{}
+	Name    string      `json:"name"`
+	Column2 interface{} `json:"column_2"`
+	Column3 interface{} `json:"column_3"`
 }
 
 // every SqlC statement starts with comment,
@@ -34,6 +34,34 @@ type UserCreateParams struct {
 // syntax * returns all parameters
 func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, userCreate, arg.Name, arg.Column2, arg.Column3)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.ApiKey,
+	)
+	return i, err
+}
+
+const userDeleteAll = `-- name: UserDeleteAll :exec
+DELETE FROM "users"
+`
+
+func (q *Queries) UserDeleteAll(ctx context.Context) error {
+	_, err := q.db.ExecContext(ctx, userDeleteAll)
+	return err
+}
+
+const userDeleteById = `-- name: UserDeleteById :one
+DELETE FROM "users"
+WHERE "id" = $1
+RETURNING id, created_at, updated_at, name, api_key
+`
+
+func (q *Queries) UserDeleteById(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, userDeleteById, id)
 	var i User
 	err := row.Scan(
 		&i.ID,

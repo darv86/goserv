@@ -10,16 +10,16 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func GetById(queries *database.Queries) http.HandlerFunc {
+func DeleteById(queries *database.Queries) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("from get user by id router")
+		log.Println("from delete user by id router")
 		param := chi.URLParam(r, "id")
 		id, err := strconv.ParseInt(param, 10, 64)
 		if err != nil {
 			log.Println(err.Error())
 			return
 		}
-		userDb, err := queries.UserGetById(r.Context(), id)
+		userDb, err := queries.UserDeleteById(r.Context(), id)
 		if err != nil {
 			log.Println(err.Error())
 		}

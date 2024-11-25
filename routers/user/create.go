@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/darv86/goserv/internal/database"
-	"github.com/darv86/goserv/internal/utils"
 )
 
 func Create(queries *database.Queries) http.HandlerFunc {
@@ -23,9 +22,8 @@ func Create(queries *database.Queries) http.HandlerFunc {
 			log.Println(err.Error())
 			return
 		}
-		user := utils.GetStructTypeOf[User](userDb)
 		w.Header().Add("Content-type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(user)
+		json.NewEncoder(w).Encode(userDb)
 	}
 }

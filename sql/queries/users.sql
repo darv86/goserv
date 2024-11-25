@@ -22,3 +22,11 @@ ORDER BY "name";
 -- name: UserGetById :one
 SELECT * FROM "users"
 WHERE "id" = $1;
+
+-- name: UserDeleteAll :exec
+DELETE FROM "users";
+
+-- name: UserDeleteById :one
+DELETE FROM "users"
+WHERE "id" = $1
+RETURNING *;

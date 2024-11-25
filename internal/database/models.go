@@ -9,16 +9,16 @@ import (
 )
 
 type GooseDbVersion struct {
-	ID        int32
-	VersionID int64
-	IsApplied bool
-	Tstamp    time.Time
+	ID        int32     `json:"id"`
+	VersionID int64     `json:"version_id"`
+	IsApplied bool      `json:"is_applied"`
+	Tstamp    time.Time `json:"tstamp"`
 }
 
 type User struct {
-	ID        int64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Name      string
-	ApiKey    string
+	ID        int64     `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Name      string    `json:"name"`
+	ApiKey    string    `json:"api_key"`
 }
