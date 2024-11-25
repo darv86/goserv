@@ -23,6 +23,10 @@ ORDER BY "name";
 SELECT * FROM "users"
 WHERE "id" = $1;
 
+-- name: UserGetByApiKey :one
+SELECT * FROM "users"
+WHERE "api_key" = $1;
+
 -- name: UserDeleteAll :exec
 DELETE FROM "users";
 

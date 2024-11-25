@@ -109,6 +109,24 @@ func (q *Queries) UserGetAll(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
+const userGetByApiKey = `-- name: UserGetByApiKey :one
+SELECT id, created_at, updated_at, name, api_key FROM "users"
+WHERE "api_key" = $1
+`
+
+func (q *Queries) UserGetByApiKey(ctx context.Context, apiKey string) (User, error) {
+	row := q.db.QueryRowContext(ctx, userGetByApiKey, apiKey)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.ApiKey,
+	)
+	return i, err
+}
+
 const userGetById = `-- name: UserGetById :one
 SELECT id, created_at, updated_at, name, api_key FROM "users"
 WHERE "id" = $1
