@@ -9,7 +9,7 @@ INSERT INTO "users" (created_at, updated_at, name)
 -- UserCreate will accept as a parameters these 4 arguments
 -- COALESCE is the standard sql function,
 -- which returns 1st not null value
-VALUES (coalesce($2, now()), coalesce($3, now()), $1)
+VALUES (coalesce($1, now()), coalesce($2, now()), $3)
 -- VALUES ($1, $2, $3, $4)
 -- syntax * returns all parameters
 RETURNING *;

@@ -11,14 +11,14 @@ import (
 
 const userCreate = `-- name: UserCreate :one
 INSERT INTO "users" (created_at, updated_at, name)
-VALUES (coalesce($2, now()), coalesce($3, now()), $1)
+VALUES (coalesce($1, now()), coalesce($2, now()), $3)
 RETURNING id, created_at, updated_at, name, api_key
 `
 
 type UserCreateParams struct {
-	Name    string      `json:"name"`
+	Column1 interface{} `json:"column_1"`
 	Column2 interface{} `json:"column_2"`
-	Column3 interface{} `json:"column_3"`
+	Name    string      `json:"name"`
 }
 
 // every SqlC statement starts with comment,
@@ -33,7 +33,7 @@ type UserCreateParams struct {
 // VALUES ($1, $2, $3, $4)
 // syntax * returns all parameters
 func (q *Queries) UserCreate(ctx context.Context, arg UserCreateParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, userCreate, arg.Name, arg.Column2, arg.Column3)
+	row := q.db.QueryRowContext(ctx, userCreate, arg.Column1, arg.Column2, arg.Name)
 	var i User
 	err := row.Scan(
 		&i.ID,

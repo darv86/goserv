@@ -21,6 +21,36 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: feeds; Type: TABLE; Schema: public; Owner: darv
+--
+
+CREATE TABLE public.feeds (
+    id bigint NOT NULL,
+    created_at timestamp without time zone DEFAULT now() NOT NULL,
+    updated_at timestamp without time zone DEFAULT now() NOT NULL,
+    name text NOT NULL,
+    url text NOT NULL,
+    user_id bigint NOT NULL
+);
+
+
+ALTER TABLE public.feeds OWNER TO darv;
+
+--
+-- Name: feeds_id_seq; Type: SEQUENCE; Schema: public; Owner: darv
+--
+
+ALTER TABLE public.feeds ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.feeds_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: goose_db_version; Type: TABLE; Schema: public; Owner: darv
 --
 
@@ -78,11 +108,27 @@ ALTER TABLE public.users ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
 
 
 --
+-- Name: feeds feeds_url_key; Type: CONSTRAINT; Schema: public; Owner: darv
+--
+
+ALTER TABLE ONLY public.feeds
+    ADD CONSTRAINT feeds_url_key UNIQUE (url);
+
+
+--
 -- Name: goose_db_version goose_db_version_pkey; Type: CONSTRAINT; Schema: public; Owner: darv
 --
 
 ALTER TABLE ONLY public.goose_db_version
     ADD CONSTRAINT goose_db_version_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: feeds pkFeeds; Type: CONSTRAINT; Schema: public; Owner: darv
+--
+
+ALTER TABLE ONLY public.feeds
+    ADD CONSTRAINT "pkFeeds" PRIMARY KEY (id);
 
 
 --
@@ -102,10 +148,25 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: akFeeds; Type: INDEX; Schema: public; Owner: darv
+--
+
+CREATE UNIQUE INDEX "akFeeds" ON public.feeds USING btree (name);
+
+
+--
 -- Name: akUsers; Type: INDEX; Schema: public; Owner: darv
 --
 
 CREATE UNIQUE INDEX "akUsers" ON public.users USING btree (name);
+
+
+--
+-- Name: feeds feeds_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: darv
+--
+
+ALTER TABLE ONLY public.feeds
+    ADD CONSTRAINT feeds_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
