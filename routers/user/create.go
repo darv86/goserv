@@ -6,9 +6,10 @@ import (
 	"net/http"
 
 	"github.com/darv86/goserv/internal/database"
+	"github.com/darv86/goserv/shared"
 )
 
-func Create(queries *database.Queries) http.HandlerFunc {
+func Create(apiConfig *shared.ApiConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("from user create router")
 		var params database.UserCreateParams
@@ -17,7 +18,7 @@ func Create(queries *database.Queries) http.HandlerFunc {
 			log.Println(err.Error())
 			return
 		}
-		userDb, err := queries.UserCreate(r.Context(), params)
+		userDb, err := apiConfig.Queries.UserCreate(r.Context(), params)
 		if err != nil {
 			log.Println(err.Error())
 			return

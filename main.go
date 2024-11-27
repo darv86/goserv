@@ -12,6 +12,7 @@ import (
 	// 4. go mod tidy (to clean/fix all requires in go.mod)
 	"github.com/darv86/goserv/internal/database"
 	"github.com/darv86/goserv/routers"
+	"github.com/darv86/goserv/shared"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	_ "github.com/lib/pq"
@@ -40,7 +41,8 @@ func main() {
 		MaxAge:           300,
 	}))
 	router.Get("/", indexRouter)
-	routers.Setup(router, queries)
+	apiConf := &shared.ApiConfig{Queries: queries, Router: router}
+	routers.Setup(apiConf)
 	//
 	PORT := "8080"
 	log.Printf("port: %s", PORT)

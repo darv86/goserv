@@ -4,26 +4,30 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
+	"reflect"
 
-	"github.com/darv86/goserv/internal/database"
-	"github.com/go-chi/chi/v5"
+	"github.com/darv86/goserv/internal/utils"
+	"github.com/darv86/goserv/shared"
 )
 
-func GetById(queries *database.Queries) http.HandlerFunc {
+func GetById(apiConf *shared.ApiConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("from get user by id router")
-		param := chi.URLParam(r, "id")
-		id, err := strconv.ParseInt(param, 10, 64)
+		id, err := utils.GetUrlLastParam(r.URL)
 		if err != nil {
 			log.Println(err.Error())
 			return
 		}
-		userDb, err := queries.UserGetById(r.Context(), id)
+		w.Header().Add("Content-type", "application/json")
+		user := apiConf.AuthUser
+		if !reflect.ValueOf(user).IsZero() && user.ID == id {
+			json.NewEncoder(w).Encode(user)
+			return
+		}
+		userDb, err := apiConf.Queries.UserGetById(r.Context(), id)
 		if err != nil {
 			log.Println(err.Error())
 		}
-		w.Header().Add("Content-type", "application/json")
 		json.NewEncoder(w).Encode(userDb)
 	}
 }

@@ -4,22 +4,20 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 
-	"github.com/darv86/goserv/internal/database"
-	"github.com/go-chi/chi/v5"
+	"github.com/darv86/goserv/internal/utils"
+	"github.com/darv86/goserv/shared"
 )
 
-func DeleteById(queries *database.Queries) http.HandlerFunc {
+func DeleteById(apiConf *shared.ApiConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("from delete user by id router")
-		param := chi.URLParam(r, "id")
-		id, err := strconv.ParseInt(param, 10, 64)
+		id, err := utils.GetUrlLastParam(r.URL)
 		if err != nil {
 			log.Println(err.Error())
 			return
 		}
-		userDb, err := queries.UserDeleteById(r.Context(), id)
+		userDb, err := apiConf.Queries.UserDeleteById(r.Context(), id)
 		if err != nil {
 			log.Println(err.Error())
 		}

@@ -4,57 +4,40 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strconv"
 
-	"github.com/darv86/goserv/internal/database"
 	"github.com/darv86/goserv/internal/utils"
 	"github.com/darv86/goserv/routers/user"
-	"github.com/go-chi/chi/v5"
+	"github.com/darv86/goserv/shared"
 )
 
-type Router interface {
-	Get(pattern string, handlerFn http.HandlerFunc)
-	Post(pattern string, handlerFn http.HandlerFunc)
-	Delete(pattern string, handlerFn http.HandlerFunc)
-}
+type AuthMiddlewareHandler func(*shared.ApiConfig) http.HandlerFunc
 
-type Handler func(*database.Queries) http.HandlerFunc
-
-func AuthMiddleware(queries *database.Queries, handler http.HandlerFunc) http.HandlerFunc {
+func AuthMiddleware(apiConf *shared.ApiConfig, handler AuthMiddlewareHandler) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		unAuthErr := errors.New("not authorized")
 		apiKey, err := utils.GetApiKey(req.Header)
 		if err != nil {
 			log.Println(err.Error())
-			http.Error(res, err.Error(), http.StatusUnauthorized)
+			http.Error(res, unAuthErr.Error(), http.StatusUnauthorized)
 			return
 		}
-		userDb, err := queries.UserGetByApiKey(req.Context(), apiKey)
+		userDb, err := apiConf.Queries.UserGetByApiKey(req.Context(), apiKey)
 		if err != nil {
 			log.Println(err.Error())
-			http.Error(res, err.Error(), http.StatusUnauthorized)
+			http.Error(res, unAuthErr.Error(), http.StatusUnauthorized)
 			return
 		}
-		param := chi.URLParam(req, "id")
-		id, err := strconv.ParseInt(param, 10, 64)
-		if err != nil {
-			log.Println(err.Error())
-			http.Error(res, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if userDb.ID != id {
-			notAuthErr := errors.New("not authorized request")
-			log.Println(notAuthErr)
-			http.Error(res, notAuthErr.Error(), http.StatusUnauthorized)
-			return
-		}
-		handler(res, req)
+		apiConf.AuthUser = userDb
+		hf := handler(apiConf)
+		hf(res, req)
 	}
 }
 
-func Setup(router Router, queries *database.Queries) {
-	router.Get("/users", user.GetAll(queries))
-	router.Get("/user/{id}", AuthMiddleware(queries, user.GetById(queries)))
-	router.Post("/user/create", user.Create(queries))
-	router.Delete("/users/delete", user.DeleteAll(queries))
-	router.Delete("/user/delete/{id}", user.DeleteById(queries))
+func Setup(apiConf *shared.ApiConfig) {
+	router := apiConf.Router
+	router.Get("/users", user.GetAll(apiConf))
+	router.Get("/user/{id}", AuthMiddleware(apiConf, user.GetById))
+	router.Post("/user/create", user.Create(apiConf))
+	router.Delete("/users/delete", AuthMiddleware(apiConf, user.DeleteAll))
+	router.Delete("/user/delete/{id}", AuthMiddleware(apiConf, user.DeleteById))
 }

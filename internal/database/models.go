@@ -8,6 +8,15 @@ import (
 	"time"
 )
 
+type Feed struct {
+	ID        int64     `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Name      string    `json:"name"`
+	Url       string    `json:"url"`
+	UserID    int64     `json:"user_id"`
+}
+
 type GooseDbVersion struct {
 	ID        int32     `json:"id"`
 	VersionID int64     `json:"version_id"`

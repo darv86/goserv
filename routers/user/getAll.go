@@ -5,13 +5,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/darv86/goserv/internal/database"
+	"github.com/darv86/goserv/shared"
 )
 
-func GetAll(queries *database.Queries) http.HandlerFunc {
+func GetAll(apiConf *shared.ApiConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("from get users router")
-		usersDb, err := queries.UserGetAll(r.Context())
+		usersDb, err := apiConf.Queries.UserGetAll(r.Context())
 		if err != nil {
 			log.Println(err.Error())
 		}
