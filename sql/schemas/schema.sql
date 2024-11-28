@@ -30,7 +30,8 @@ CREATE TABLE public.feeds (
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     name text NOT NULL,
     url text NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    fetched_at timestamp without time zone
 );
 
 

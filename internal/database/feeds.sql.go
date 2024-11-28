@@ -12,7 +12,7 @@ import (
 const feedCreate = `-- name: FeedCreate :one
 INSERT INTO "feeds" ("created_at", "updated_at", "name", "url", "user_id")
 VALUES (coalesce($1, now()), coalesce($2, now()), $3, $4, $5)
-RETURNING id, created_at, updated_at, name, url, user_id
+RETURNING id, created_at, updated_at, name, url, user_id, fetched_at
 `
 
 type FeedCreateParams struct {
@@ -39,6 +39,7 @@ func (q *Queries) FeedCreate(ctx context.Context, arg FeedCreateParams) (Feed, e
 		&i.Name,
 		&i.Url,
 		&i.UserID,
+		&i.FetchedAt,
 	)
 	return i, err
 }
@@ -52,8 +53,45 @@ func (q *Queries) FeedDeleteAll(ctx context.Context) error {
 	return err
 }
 
+const feedFetchedGetAll = `-- name: FeedFetchedGetAll :many
+SELECT id, created_at, updated_at, name, url, user_id, fetched_at FROM "feeds"
+ORDER BY "fetched_at" ASC NULLS FIRST
+LIMIT $1
+`
+
+func (q *Queries) FeedFetchedGetAll(ctx context.Context, limit int32) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, feedFetchedGetAll, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Feed
+	for rows.Next() {
+		var i Feed
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Name,
+			&i.Url,
+			&i.UserID,
+			&i.FetchedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const feedGetAll = `-- name: FeedGetAll :many
-SELECT id, created_at, updated_at, name, url, user_id FROM "feeds"
+SELECT id, created_at, updated_at, name, url, user_id, fetched_at FROM "feeds"
 ORDER BY "name"
 `
 
@@ -73,6 +111,7 @@ func (q *Queries) FeedGetAll(ctx context.Context) ([]Feed, error) {
 			&i.Name,
 			&i.Url,
 			&i.UserID,
+			&i.FetchedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -87,10 +126,32 @@ func (q *Queries) FeedGetAll(ctx context.Context) ([]Feed, error) {
 	return items, nil
 }
 
+const feedMarkFetched = `-- name: FeedMarkFetched :one
+UPDATE "feeds"
+SET "fetched_at" = NOW(), "updated_at" = NOW()
+WHERE "id" = $1
+RETURNING id, created_at, updated_at, name, url, user_id, fetched_at
+`
+
+func (q *Queries) FeedMarkFetched(ctx context.Context, id int64) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, feedMarkFetched, id)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+		&i.FetchedAt,
+	)
+	return i, err
+}
+
 const feedMineDeleteById = `-- name: FeedMineDeleteById :one
 DELETE FROM "feeds"
 WHERE "id" = $1 AND "user_id" = $2
-RETURNING id, created_at, updated_at, name, url, user_id
+RETURNING id, created_at, updated_at, name, url, user_id, fetched_at
 `
 
 type FeedMineDeleteByIdParams struct {
@@ -108,12 +169,13 @@ func (q *Queries) FeedMineDeleteById(ctx context.Context, arg FeedMineDeleteById
 		&i.Name,
 		&i.Url,
 		&i.UserID,
+		&i.FetchedAt,
 	)
 	return i, err
 }
 
 const feedMineGetAll = `-- name: FeedMineGetAll :many
-SELECT id, created_at, updated_at, name, url, user_id FROM "feeds"
+SELECT id, created_at, updated_at, name, url, user_id, fetched_at FROM "feeds"
 WHERE "user_id" = $1
 ORDER BY "name"
 `
@@ -134,6 +196,7 @@ func (q *Queries) FeedMineGetAll(ctx context.Context, userID int64) ([]Feed, err
 			&i.Name,
 			&i.Url,
 			&i.UserID,
+			&i.FetchedAt,
 		); err != nil {
 			return nil, err
 		}
