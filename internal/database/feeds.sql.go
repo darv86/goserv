@@ -86,3 +86,64 @@ func (q *Queries) FeedGetAll(ctx context.Context) ([]Feed, error) {
 	}
 	return items, nil
 }
+
+const feedMineDeleteById = `-- name: FeedMineDeleteById :one
+DELETE FROM "feeds"
+WHERE "id" = $1 AND "user_id" = $2
+RETURNING id, created_at, updated_at, name, url, user_id
+`
+
+type FeedMineDeleteByIdParams struct {
+	ID     int64 `json:"id"`
+	UserID int64 `json:"user_id"`
+}
+
+func (q *Queries) FeedMineDeleteById(ctx context.Context, arg FeedMineDeleteByIdParams) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, feedMineDeleteById, arg.ID, arg.UserID)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const feedMineGetAll = `-- name: FeedMineGetAll :many
+SELECT id, created_at, updated_at, name, url, user_id FROM "feeds"
+WHERE "user_id" = $1
+ORDER BY "name"
+`
+
+func (q *Queries) FeedMineGetAll(ctx context.Context, userID int64) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, feedMineGetAll, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Feed
+	for rows.Next() {
+		var i Feed
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Name,
+			&i.Url,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

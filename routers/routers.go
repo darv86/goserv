@@ -45,4 +45,7 @@ func Setup(apiConf *shared.ApiConfig) {
 	router.Get("/feeds", feed.GetAll(apiConf))
 	router.Post("/feed/create", AuthMiddleware(apiConf, feed.Create))
 	router.Delete("/feeds/delete", AuthMiddleware(apiConf, feed.DeleteAll))
+
+	router.Get("/feeds-mine", AuthMiddleware(apiConf, feed.MineGetAll))
+	router.Delete("/feed-mine/delete/{id}", AuthMiddleware(apiConf, feed.MineDeleteById))
 }

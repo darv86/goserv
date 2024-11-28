@@ -9,3 +9,13 @@ ORDER BY "name";
 
 -- name: FeedDeleteAll :exec
 DELETE FROM "feeds";
+
+-- name: FeedMineDeleteById :one
+DELETE FROM "feeds"
+WHERE "id" = $1 AND "user_id" = $2
+RETURNING *;
+
+-- name: FeedMineGetAll :many
+SELECT * FROM "feeds"
+WHERE "user_id" = $1
+ORDER BY "name";
