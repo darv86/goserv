@@ -2,6 +2,7 @@ package shared
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/darv86/goserv/internal/database"
 )
@@ -20,4 +21,10 @@ type ApiConfig struct {
 	Queries  *database.Queries
 	AuthUser database.User
 	Router   IRouter
+}
+
+type ScraperConfig struct {
+	Queries        *database.Queries
+	TickInterval   time.Duration
+	MaxFeedsAtTime int
 }

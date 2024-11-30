@@ -4,14 +4,11 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
-	// to use external libs:
-	// 1. go get github.com/go-chi/chi/v5 (package path)
-	// 2. import and use some code in this module
-	// 3. go mod vendor (folder for a libs)
-	// 4. go mod tidy (to clean/fix all requires in go.mod)
 	"github.com/darv86/goserv/internal/database"
 	"github.com/darv86/goserv/routers"
+	"github.com/darv86/goserv/scraper"
 	"github.com/darv86/goserv/shared"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -43,6 +40,15 @@ func main() {
 	router.Get("/", indexRouter)
 	apiConf := &shared.ApiConfig{Queries: queries, Router: router}
 	routers.Setup(apiConf)
+	//
+	const TICK_INTERVAL = time.Second * 5
+	const MAX_FEEDS_AT_TIME = 10
+	scraperConf := &shared.ScraperConfig{
+		Queries:        queries,
+		TickInterval:   TICK_INTERVAL,
+		MaxFeedsAtTime: MAX_FEEDS_AT_TIME,
+	}
+	scraper.Run(scraperConf)
 	//
 	PORT := "8080"
 	log.Printf("port: %s", PORT)
