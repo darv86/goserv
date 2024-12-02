@@ -6,9 +6,11 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/darv86/goserv/internal/database"
 	"github.com/darv86/goserv/shared"
 )
 
@@ -38,11 +40,10 @@ func Run(scraperConf *shared.ScraperConfig) {
 			log.Println(err.Error())
 		}
 		wg := &sync.WaitGroup{}
-		for _, feed := range feedsFetched {
+		for _, feedDb := range feedsFetched {
 			wg.Add(1)
-			log.Println(feed.Name)
-			go makeFeedFetch(feed.Url, wg)
-			_, err := queries.FeedMarkFetched(context, feed.ID)
+			go makeFeedFetch(feedDb, queries, wg)
+			_, err := queries.FeedMarkFetched(context, feedDb.ID)
 			if err != nil {
 				log.Println(err.Error())
 			}
@@ -51,10 +52,10 @@ func Run(scraperConf *shared.ScraperConfig) {
 	}
 }
 
-func makeFeedFetch(url string, wg *sync.WaitGroup) {
+func makeFeedFetch(feedDb database.Feed, queries *database.Queries, wg *sync.WaitGroup) {
 	defer wg.Done()
 	client := &http.Client{Timeout: time.Second * 10}
-	response, err := client.Get(url)
+	response, err := client.Get(feedDb.Url)
 	if err != nil {
 		log.Println(err.Error())
 	}
@@ -69,5 +70,18 @@ func makeFeedFetch(url string, wg *sync.WaitGroup) {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	log.Println(feed.Channel.Title)
+	for _, post := range feed.Channel.Item {
+		_, err := queries.PostCreate(context.Background(), database.PostCreateParams{
+			Title:  post.Title,
+			Url:    post.Link,
+			FeedID: feedDb.ID,
+		})
+		if strings.Contains(err.Error(), "duplicate key") {
+			continue
+		}
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+	log.Printf("The feed %s has %v of posts:", feed.Channel.Title, len(feed.Channel.Item))
 }

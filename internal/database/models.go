@@ -26,6 +26,13 @@ type GooseDbVersion struct {
 	Tstamp    time.Time `json:"tstamp"`
 }
 
+type Post struct {
+	ID     int64  `json:"id"`
+	Title  string `json:"title"`
+	Url    string `json:"url"`
+	FeedID int64  `json:"feed_id"`
+}
+
 type User struct {
 	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"created_at"`

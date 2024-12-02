@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS "feeds" (
 	"created_at" timestamp not null default now(),
 	"updated_at" timestamp not null default now(),
 	"name" text not null,
-	"url" text  not null UNIQUE,
+	"url" text not null UNIQUE,
 	"user_id" bigint not null references "users"("id") on delete cascade
 );
 

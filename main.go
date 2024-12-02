@@ -42,7 +42,7 @@ func main() {
 	routers.Setup(apiConf)
 	//
 	const TICK_INTERVAL = time.Second * 5
-	const MAX_FEEDS_AT_TIME = 10
+	const MAX_FEEDS_AT_TIME = 5
 	scraperConf := &shared.ScraperConfig{
 		Queries:        queries,
 		TickInterval:   TICK_INTERVAL,
