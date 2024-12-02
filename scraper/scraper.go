@@ -33,7 +33,8 @@ func Run(scraperConf *shared.ScraperConfig) {
 	context := context.Background()
 	queries := scraperConf.Queries
 	maxFeeds := scraperConf.MaxFeedsAtTime
-	ticker := time.NewTicker(time.Second * 5)
+	interval := scraperConf.TickInterval
+	ticker := time.NewTicker(interval)
 	for ; ; <-ticker.C {
 		feedsFetched, err := queries.FeedFetchedGetAll(context, int32(maxFeeds))
 		if err != nil {
@@ -43,10 +44,6 @@ func Run(scraperConf *shared.ScraperConfig) {
 		for _, feedDb := range feedsFetched {
 			wg.Add(1)
 			go makeFeedFetch(feedDb, queries, wg)
-			_, err := queries.FeedMarkFetched(context, feedDb.ID)
-			if err != nil {
-				log.Println(err.Error())
-			}
 		}
 		wg.Wait()
 	}
@@ -54,7 +51,7 @@ func Run(scraperConf *shared.ScraperConfig) {
 
 func makeFeedFetch(feedDb database.Feed, queries *database.Queries, wg *sync.WaitGroup) {
 	defer wg.Done()
-	client := &http.Client{Timeout: time.Second * 10}
+	client := &http.Client{}
 	response, err := client.Get(feedDb.Url)
 	if err != nil {
 		log.Println(err.Error())
@@ -65,6 +62,15 @@ func makeFeedFetch(feedDb database.Feed, queries *database.Queries, wg *sync.Wai
 	if err != nil {
 		log.Println(err.Error())
 	}
+	if feedData == nil {
+		log.Println(err.Error())
+	}
+	//
+	_, err = queries.FeedMarkFetched(context.Background(), feedDb.ID)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	//
 	var feed RSSFeed
 	err = xml.Unmarshal(feedData, &feed)
 	if err != nil {
@@ -76,10 +82,11 @@ func makeFeedFetch(feedDb database.Feed, queries *database.Queries, wg *sync.Wai
 			Url:    post.Link,
 			FeedID: feedDb.ID,
 		})
-		if strings.Contains(err.Error(), "duplicate key") {
-			continue
-		}
+		// log.Println(postDb.ID)
 		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"posts_url_key\"") {
+				continue
+			}
 			log.Println(err.Error())
 		}
 	}

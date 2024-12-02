@@ -9,6 +9,42 @@ import (
 	"context"
 )
 
+const postByUser = `-- name: PostByUser :many
+SELECT id, title, url, feed_id FROM "posts"
+WHERE "feed_id" IN (
+	SELECT "id" FROM "feeds"
+	WHERE "user_id" = $1
+)
+`
+
+func (q *Queries) PostByUser(ctx context.Context, userID int64) ([]Post, error) {
+	rows, err := q.db.QueryContext(ctx, postByUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Url,
+			&i.FeedID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const postCreate = `-- name: PostCreate :one
 INSERT INTO "posts" (
 	"title",

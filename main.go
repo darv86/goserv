@@ -42,13 +42,13 @@ func main() {
 	routers.Setup(apiConf)
 	//
 	const TICK_INTERVAL = time.Second * 5
-	const MAX_FEEDS_AT_TIME = 5
+	const MAX_FEEDS_AT_TIME = 10
 	scraperConf := &shared.ScraperConfig{
 		Queries:        queries,
 		TickInterval:   TICK_INTERVAL,
 		MaxFeedsAtTime: MAX_FEEDS_AT_TIME,
 	}
-	scraper.Run(scraperConf)
+	go scraper.Run(scraperConf)
 	//
 	PORT := "8080"
 	log.Printf("port: %s", PORT)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/darv86/goserv/internal/utils"
 	"github.com/darv86/goserv/routers/feed"
+	"github.com/darv86/goserv/routers/post"
 	"github.com/darv86/goserv/routers/user"
 	"github.com/darv86/goserv/shared"
 )
@@ -45,7 +46,8 @@ func Setup(apiConf *shared.ApiConfig) {
 	router.Get("/feeds", feed.GetAll(apiConf))
 	router.Post("/feed/create", AuthMiddleware(apiConf, feed.Create))
 	router.Delete("/feeds/delete", AuthMiddleware(apiConf, feed.DeleteAll))
-
 	router.Get("/feeds-mine", AuthMiddleware(apiConf, feed.MineGetAll))
 	router.Delete("/feed-mine/delete/{id}", AuthMiddleware(apiConf, feed.MineDeleteById))
+
+	router.Get("/my-posts", AuthMiddleware(apiConf, post.GetMyPosts))
 }
